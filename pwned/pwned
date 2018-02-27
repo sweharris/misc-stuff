@@ -1,0 +1,31 @@
+#!/bin/bash
+
+pswd=$1
+if [ -z "$pswd" ]
+then
+  g=$(stty -g)
+  stty -echo
+  echo -n "Enter password to check: "
+  read pswd
+  stty $g
+  echo
+fi
+
+typeset -u sha=$(printf "%s" $pswd | shasum | awk '{print $1}')
+
+ret=${sha#?????}
+base=${sha%$ret}
+
+[[ -n "$DEBUG" ]] && echo Requesting $base
+
+api=$(curl --silent https://api.pwnedpasswords.com/range/$base)
+
+[[ -n "$DEBUG" ]] && echo "This returned $(echo "$api" | wc -l) entries"
+
+fnd=$(echo "$api" | grep $ret: | tr -d '\015')
+if [ -n "$fnd" ]
+then
+  echo Password has been found ${fnd#*:} times
+else
+  echo Password is clean
+fi
