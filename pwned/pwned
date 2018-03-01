@@ -3,12 +3,17 @@
 pswd=$1
 if [ -z "$pswd" ]
 then
-  g=$(stty -g)
-  stty -echo
-  echo -n "Enter password to check: "
-  read pswd
-  stty $g
-  echo
+  if [ ! -t 0 ]
+  then
+    read pswd
+  else
+    g=$(stty -g)
+    stty -echo
+    echo -n "Enter password to check: "
+    read pswd
+    stty $g
+    echo
+  fi
 fi
 
 typeset -u sha=$(printf "%s" $pswd | shasum | awk '{print $1}')
