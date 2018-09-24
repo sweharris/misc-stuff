@@ -1,0 +1,35 @@
+#!/bin/bash
+# 
+# An example bash script that can take human input, but can
+# also stop when some external event happens.  So, for example,
+# we could wait for a user to enter a string or wait until a
+# file appears
+
+external_trigger()
+{
+  while [ ! -f /tmp/trigger_file ]
+  do
+    sleep 1
+  done
+  kill -1 $1
+}
+
+echo -n "Hello: "
+coproc { trap 'exit' 1 ; read -r foo < /dev/tty ; echo "$foo"; }
+
+external_trigger $! &
+trigger_pid=$!
+
+# Get the result from the coprocess
+read result <&"${COPROC[0]}"
+
+# Clean up the external trigger, in case it's still running
+kill -9 $trigger_pid 2>/dev/null
+wait 2>/dev/null
+
+if [ -z "$result" ]
+then
+  echo "Trigger occured"
+else
+  echo You entered $result
+fi
