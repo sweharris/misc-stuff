@@ -18,6 +18,8 @@ fi
 
 typeset -u sha=$(printf "%s" $pswd | shasum | awk '{print $1}')
 
+[[ -n "$DEBUG" ]] && echo Hash is $sha
+
 ret=${sha#?????}
 base=${sha%$ret}
 
